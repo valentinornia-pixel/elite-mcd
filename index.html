@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="apple-mobile-web-app-title" content="Elite MCD">
+<title>Elite MCD Pro</title>
+
+    <!-- Modo App Nativa para iPhone (iOS) y Mac (Safari > Añadir al Dock) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#020617">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="icon-512.png">
+
+    <!-- Librerías guardadas en la carpeta vendor/ (no dependen de internet) -->
+    <script src="vendor/tailwind.js"></script>
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        :root { color-scheme: dark; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        body, html { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; background: #0f172a; }
+        /* Respeta la muesca y la barra inferior del iPhone */
+        .safe-top { padding-top: max(1.5rem, env(safe-area-inset-top, 0px)); }
+        .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px)); }
+        @media (min-width: 640px) { .safe-top { padding-top: 1rem; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .animate-fadeIn { animation: fadeIn .3s ease-out; }
+        @media (prefers-reduced-motion: reduce) { .animate-fadeIn { animation: none; } }
+    </style>
+</head>
+<body class="bg-slate-900 flex justify-center items-center h-full p-0 sm:p-4 font-sans text-slate-200 selection:bg-teal-500 selection:text-white antialiased">
+
+
+    <!-- CONTENEDOR DISPOSITIVO MÓVIL Mockup -->
+    <div class="relative w-full max-w-md h-full sm:h-[840px] sm:max-h-full bg-slate-950 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col border border-slate-800">
+
+        <!-- BARRA DE ESTADO SIMULADA (Oculta en móvil) -->
+        <div class="bg-slate-950 text-slate-400 px-6 pt-3 pb-1 justify-between items-center text-xs tracking-wider z-20 shrink-0 font-medium hidden sm:flex">
+            <span id="clock">14:27</span>
+            <div class="flex items-center gap-1.5">
+                <i class="fas fa-signal text-[10px]"></i>
+                <i class="fas fa-wifi text-[10px]"></i>
+                <i class="fas fa-battery-three-quarters text-sm"></i>
+            </div>
+        </div>
+
+        <!-- ENCABEZADO DE LA APP -->
+        <header class="safe-top bg-slate-900/90 backdrop-blur px-5 pb-4 flex items-center justify-between gap-3 border-b border-slate-800/80 z-20 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 shrink-0 rounded-xl bg-teal-500/10 flex items-center justify-center border border-teal-500/20">
+                    <span class="text-teal-400 font-bold text-base">#6</span>
+                </div>
+                <div class="min-w-0">
+                    <h1 id="app-title" class="text-base font-bold tracking-tight text-white leading-tight">Dashboard Élite Alejandro Ornia</h1>
+                    <div class="flex items-center gap-1 text-xs leading-none my-1" aria-label="España, Argentina, Suiza">
+                        <span title="España">🇪🇸</span><span title="Argentina">🇦🇷</span><span title="Suiza">🇨🇭</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium">Pivote Defensivo</p>
+                </div>
+            </div>
+            <!-- BOTÓN AOV DE INSTALACIÓN INTEGRADO -->
+            <button id="btn-install-app" onclick="showInstallInstructions()" class="shrink-0 bg-teal-500 hover:bg-teal-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-lg shadow-teal-500/10">
+                <i class="fas fa-download"></i> AOV
+            </button>
+        </header>
+
+        <!-- CUERPO DE CONTENIDO DE LA APP -->
+        <main id="main-scroll" class="flex-1 overflow-y-auto px-4 py-5 custom-scrollbar bg-gradient-to-b from-slate-950 to-slate-900 pb-28">
+
+            <!-- POPUP INTERACTIVO CON INSTRUCCIONES DE INSTALACIÓN -->
+            <div id="install-modal" class="hidden mb-5 bg-slate-900 border border-teal-500/30 p-4 rounded-xl space-y-3 animate-fadeIn">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-2 text-teal-400 font-bold text-sm">
+                        <i class="fas fa-mobile-alt"></i> Instalar la App
+                    </div>
+                    <button onclick="closeInstallInstructions()" class="text-slate-500 hover:text-white" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+                </div>
+                <p class="text-xs text-slate-300 leading-normal font-semibold">En iPhone (Safari):</p>
+                <ol class="text-[11px] text-slate-400 space-y-1.5 list-decimal list-inside bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                    <li>Pulsa el botón <b class="text-white">Compartir</b> <i class="far fa-share-square text-teal-400"></i> (abajo en el centro).</li>
+                    <li>Busca la opción <b class="text-white">"Añadir a la pantalla de inicio"</b> <i class="far fa-plus-square text-teal-400"></i>.</li>
+                    <li>Presiona <b class="text-white">Añadir</b> arriba a la derecha. ¡Listo!</li>
+                </ol>
+                <p class="text-xs text-slate-300 leading-normal font-semibold">En Mac (Safari):</p>
+                <ol class="text-[11px] text-slate-400 space-y-1.5 list-decimal list-inside bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                    <li>Menú <b class="text-white">Archivo</b> → <b class="text-white">Añadir al Dock…</b></li>
+                    <li>Pulsa <b class="text-white">Añadir</b>. La app aparece en el Dock y en Aplicaciones.</li>
+                </ol>
+            </div>
+
+            <!-- SECCIÓN 1: DASHBOARD PRINCIPAL -->
+            <section id="view-dashboard" class="space-y-6 animate-fadeIn">
+                <!-- Tarjeta Resumen del Estado -->
+                <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950/40 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-5 pointer-events-none text-9xl font-extrabold text-teal-400">6</div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-[10px] bg-teal-500/10 text-teal-400 px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider border border-teal-500/20">Microciclo Activo</span>
+                            <h2 class="text-xl font-bold mt-2 text-white">Transición Pro</h2>
+                        </div>
+                        <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-md font-medium border border-slate-700/50">Semana MD-Partido</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                            <div class="flex items-center gap-2 text-slate-400 text-xs mb-1 font-medium">
+                                <i class="fas fa-running text-teal-400 text-sm"></i> Volumen Objetivo
+                            </div>
+                            <p class="text-lg font-bold text-white tracking-tight">11-13 <span class="text-xs font-normal text-slate-400">km/p</span></p>
+                        </div>
+                        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                            <div class="flex items-center gap-2 text-slate-400 text-xs mb-1 font-medium">
+                                <i class="fas fa-check-circle text-emerald-400 text-sm"></i> Progreso Diario
+                            </div>
+                            <p id="dashboard-progress" class="text-lg font-bold text-white tracking-tight">0%</p>
+                        </div>
+                    </div>
+                    <!-- Progreso semanal -->
+                    <div class="mt-4">
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-slate-400 font-medium">Sesiones completadas (semana)</span>
+                            <span id="dash-progress-label" class="text-teal-400 font-bold">0 / 0</span>
+                        </div>
+                        <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="dash-progress-bar" class="h-full bg-teal-500 rounded-full transition-all duration-500" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sesión de hoy -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Sesión de Hoy</h3>
+                    <button id="today-card" onclick="openToday()" class="w-full text-left bg-slate-900/60 border border-slate-800 hover:border-teal-500/40 rounded-xl p-4 transition-all"></button>
+                </div>
+
+                <!-- Matriz Rápida de Prioridades -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Matriz de Rendimiento</h3>
+                    <div id="priority-matrix" class="grid grid-cols-2 gap-3"></div>
+                </div>
+
+                <!-- Lista de Accesos Rápidos -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Resumen del Plan Semanal</h3>
+                    <div class="space-y-2">
+                        <button onclick="changeTab('training')" class="w-full text-left bg-slate-900/40 hover:bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-xl p-4 flex items-center justify-between group transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform"><i class="fas fa-dumbbell"></i></div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white">Bloque de Entrenamiento</h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">Microciclo estructurado Lun a Dom</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-xs text-slate-500 group-hover:text-teal-400 transition-colors"></i>
+                        </button>
+                        <button onclick="changeTab('nutrition')" class="w-full text-left bg-slate-900/40 hover:bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-xl p-4 flex items-center justify-between group transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform"><i class="fas fa-apple-alt"></i></div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white">Estrategia Nutricional</h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">Macros adaptados a las cargas</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-xs text-slate-500 group-hover:text-amber-400 transition-colors"></i>
+                        </button>
+                        <button onclick="changeTab('progress')" class="w-full text-left bg-slate-900/40 hover:bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-xl p-4 flex items-center justify-between group transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform"><i class="fas fa-chart-line"></i></div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white">Control de Carga y Bienestar</h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">Registro diario de RPE, sueño y fatiga</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-xs text-slate-500 group-hover:text-sky-400 transition-colors"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 2: ENTRENAMIENTO -->
+            <section id="view-training" class="hidden space-y-5 animate-fadeIn">
+                <!-- Cronograma Semanal horizontal -->
+                <div id="day-selector" class="flex justify-between gap-1 overflow-x-auto pb-2 custom-scrollbar"></div>
+
+                <!-- Cabecera del día -->
+                <div id="day-header" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4"></div>
+
+                <!-- Bloques de la sesión -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between px-1">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Bloques de la Sesión</h3>
+                        <span id="day-blocks-count" class="text-[11px] text-slate-500 font-medium"></span>
+                    </div>
+                    <div id="day-blocks" class="space-y-2"></div>
+                </div>
+
+                <!-- Nota del entrenador -->
+                <div id="day-note" class="bg-teal-500/5 border border-teal-500/20 rounded-xl p-4 text-xs text-slate-300 leading-relaxed"></div>
+            </section>
+
+            <!-- SECCIÓN 3: NUTRICIÓN -->
+            <section id="view-nutrition" class="hidden space-y-5 animate-fadeIn">
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Tipo de Día</h3>
+                    <div id="load-selector" class="grid grid-cols-4 gap-1.5"></div>
+                </div>
+
+                <div class="bg-gradient-to-br from-slate-900 to-amber-950/30 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-end justify-between mb-4">
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Energía objetivo</p>
+                            <p class="text-3xl font-bold text-white tracking-tight"><span id="kcal">0</span> <span class="text-sm font-normal text-slate-400">kcal</span></p>
+                        </div>
+                        <div class="text-right">
+                            <label for="weight" class="text-xs text-slate-400 font-medium block mb-1">Peso (kg)</label>
+                            <input id="weight" type="number" inputmode="decimal" min="45" max="110" value="72" class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-right text-white text-base focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+                    <div id="macros" class="space-y-3"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Timing de Comidas</h3>
+                    <div id="meals" class="space-y-2"></div>
+                </div>
+
+                <div class="bg-sky-500/5 border border-sky-500/20 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-white"><i class="fas fa-tint text-sky-400 mr-2"></i>Hidratación</span>
+                        <span class="text-xs text-sky-400 font-bold"><span id="water-count">0</span> / 10 vasos</span>
+                    </div>
+                    <div id="water-glasses" class="flex gap-1.5 flex-wrap"></div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 4: PROGRESO -->
+            <section id="view-progress" class="hidden space-y-5 animate-fadeIn">
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Registro de Hoy</h3>
+                    <div id="wellness-sliders" class="space-y-4"></div>
+                    <button onclick="saveWellness()" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm py-3 rounded-xl transition-colors">
+                        <i class="fas fa-save mr-2"></i>Guardar registro
+                    </button>
+                </div>
+
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Carga Semanal (RPE × min)</h3>
+                        <span id="weekly-load" class="text-xs font-bold text-teal-400"></span>
+                    </div>
+                    <div id="load-chart" class="flex items-end justify-between gap-2 h-36"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Historial</h3>
+                    <div id="history" class="space-y-2"></div>
+                </div>
+
+                <button id="reset-btn" onclick="resetData()" class="w-full text-xs text-slate-500 hover:text-rose-400 py-2 transition-colors">
+                    <i class="fas fa-rotate-left mr-1"></i>Reiniciar datos de la semana
+                </button>
+            </section>
+        </main>
+
+        <!-- NAVEGACIÓN INFERIOR -->
+        <nav class="safe-bottom absolute bottom-0 inset-x-0 bg-slate-950/95 backdrop-blur border-t border-slate-800 px-4 pt-2 flex justify-around z-30">
+            <button data-tab="dashboard" onclick="changeTab('dashboard')" class="nav-btn flex flex-col items-center gap-1 w-16 py-1 text-slate-500 transition-colors">
+                <i class="fas fa-house text-lg"></i><span class="text-[10px] font-semibold">Inicio</span>
+            </button>
+            <button data-tab="training" onclick="changeTab('training')" class="nav-btn flex flex-col items-center gap-1 w-16 py-1 text-slate-500 transition-colors">
+                <i class="fas fa-dumbbell text-lg"></i><span class="text-[10px] font-semibold">Entreno</span>
+            </button>
+            <button data-tab="nutrition" onclick="changeTab('nutrition')" class="nav-btn flex flex-col items-center gap-1 w-16 py-1 text-slate-500 transition-colors">
+                <i class="fas fa-apple-alt text-lg"></i><span class="text-[10px] font-semibold">Nutrición</span>
+            </button>
+            <button data-tab="progress" onclick="changeTab('progress')" class="nav-btn flex flex-col items-center gap-1 w-16 py-1 text-slate-500 transition-colors">
+                <i class="fas fa-chart-line text-lg"></i><span class="text-[10px] font-semibold">Progreso</span>
+            </button>
+        </nav>
+
+        <!-- TOAST -->
+        <div id="toast" class="absolute left-1/2 -translate-x-1/2 bottom-28 bg-slate-800 border border-slate-700 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-xl opacity-0 pointer-events-none transition-opacity duration-300 z-40 whitespace-nowrap"></div>
+    </div>
+
+    <script>
+    // ---------- DATOS ----------
+    const DAYS = [
+        { id: 'Lunes', short: 'Lun', md: 'MD+1', title: 'Recuperación Activa', type: 'baja', duration: 45, rpe: 3, icon: 'fa-spa',
+          blocks: [
+            { name: 'Bici / carrera regenerativa', detail: '15 min a 60-65% FCmáx', icon: 'fa-bicycle' },
+            { name: 'Movilidad cadera y tobillo', detail: '3 × 8 rep por ejercicio', icon: 'fa-child-reaching' },
+            { name: 'Foam roller + estiramientos', detail: 'Isquios, cuádriceps, gemelos', icon: 'fa-person-praying' },
+            { name: 'Piscina / contraste frío-calor', detail: '3 ciclos 3\' calor / 1\' frío', icon: 'fa-water' }
+          ],
+          note: 'Titulares: solo regenerativo. Suplentes: compensatorio con 4×4 min al 85-90% FCmáx.' },
+        { id: 'Martes', short: 'Mar', md: 'MD-5', title: 'Descanso', type: 'baja', duration: 0, rpe: 0, icon: 'fa-bed',
+          blocks: [
+            { name: 'Descanso total', detail: 'Prioriza 9 h de sueño', icon: 'fa-moon' },
+            { name: 'Análisis de vídeo', detail: '20 min: acciones defensivas del último partido', icon: 'fa-video' }
+          ],
+          note: 'Día clave para la supercompensación. Hidratación y proteína repartida en 4-5 tomas.' },
+        { id: 'Miércoles', short: 'Mié', md: 'MD-4', title: 'Fuerza y Duelos', type: 'alta', duration: 90, rpe: 8, icon: 'fa-dumbbell',
+          blocks: [
+            { name: 'Activación + core anti-rotación', detail: 'Pallof press 3 × 10, plancha lateral 3 × 30 s', icon: 'fa-fire' },
+            { name: 'Fuerza tren inferior', detail: 'Sentadilla trasera 4 × 5 @ 80% 1RM', icon: 'fa-dumbbell' },
+            { name: 'Excéntricos isquios', detail: 'Nordic curl 3 × 6', icon: 'fa-shield-halved' },
+            { name: 'Duelos 1v1 en espacio reducido', detail: '6 × 30 s / 90 s rec. — entrada y temporización', icon: 'fa-people-arrows' },
+            { name: 'Rondo 4v2 de presión tras pérdida', detail: '4 × 3 min', icon: 'fa-arrows-spin' }
+          ],
+          note: 'Día de mayor tensión mecánica. Cuida la técnica en el choque: hombro con hombro, centro de gravedad bajo.' },
+        { id: 'Jueves', short: 'Jue', md: 'MD-3', title: 'Resistencia Táctica', type: 'alta', duration: 85, rpe: 7, icon: 'fa-chess-board',
+          blocks: [
+            { name: 'Escaneo visual pre-recepción', detail: 'Ejercicio de conos de colores: 3 chequeos antes de recibir', icon: 'fa-eye' },
+            { name: 'Juego de posición 7v7+3', detail: '4 × 6 min — el pivote como comodín central', icon: 'fa-chess-board' },
+            { name: 'Coberturas y basculaciones', detail: 'Línea de 4 + pivote, 15 min', icon: 'fa-arrows-left-right' },
+            { name: 'Partido condicionado campo grande', detail: '2 × 12 min, máx. 2 toques en medio', icon: 'fa-futbol' }
+          ],
+          note: 'Objetivo: 8-10 escaneos por minuto en fase defensiva. Grábate y cuenta los giros de cabeza.' },
+        { id: 'Viernes', short: 'Vie', md: 'MD-2', title: 'Velocidad y Pase', type: 'media', duration: 65, rpe: 6, icon: 'fa-bolt',
+          blocks: [
+            { name: 'Velocidad de reacción', detail: '8 × 10 m con estímulo visual', icon: 'fa-bolt' },
+            { name: 'Cambios de dirección', detail: '6 × 5-10-5 m', icon: 'fa-shuffle' },
+            { name: 'Circuito de pase vertical', detail: 'Pase entre líneas a 20-30 m, ambas piernas', icon: 'fa-location-arrow' },
+            { name: 'Balón parado defensivo', detail: 'Marcajes y zonas, 15 min', icon: 'fa-flag' }
+          ],
+          note: 'Volumen bajo, intensidad alta. Calidad por encima de cantidad.' },
+        { id: 'Sábado', short: 'Sáb', md: 'MD-1', title: 'Activación Pre-Partido', type: 'media', duration: 45, rpe: 4, icon: 'fa-battery-full',
+          blocks: [
+            { name: 'Movilidad dinámica', detail: '10 min', icon: 'fa-child-reaching' },
+            { name: 'Rondo de activación', detail: '5v2, 3 × 3 min', icon: 'fa-arrows-spin' },
+            { name: 'Sprints cortos', detail: '4 × 15 m al 95%', icon: 'fa-bolt' },
+            { name: 'Repaso táctico', detail: 'Plan de partido y rival', icon: 'fa-clipboard-list' }
+          ],
+          note: 'Carga de carbohidratos y sueño de calidad. Visualiza 3 situaciones clave del rival.' },
+        { id: 'Domingo', short: 'Dom', md: 'MD', title: 'Día de Partido', type: 'partido', duration: 95, rpe: 9, icon: 'fa-futbol',
+          blocks: [
+            { name: 'Comida pre-partido', detail: '3-4 h antes: rica en carbohidratos', icon: 'fa-utensils' },
+            { name: 'Calentamiento', detail: '25 min protocolo FIFA 11+ adaptado', icon: 'fa-fire' },
+            { name: 'Partido', detail: 'Foco: escaneo, coberturas, primer pase', icon: 'fa-futbol' },
+            { name: 'Recuperación inmediata', detail: 'Batido 3:1 CHO:PRO en los 30 min post', icon: 'fa-glass-water' }
+          ],
+          note: 'KPIs: recuperaciones, intercepciones, % pase progresivo, duelos ganados.' }
+    ];
+
+    const PRIORITIES = [
+        { name: 'Escaneo Visual', level: 'CRÍTICA', stars: 4 },
+        { name: 'Core y Choque', level: 'ALTA', stars: 3 },
+        { name: 'Pase Vertical', level: 'ALTA', stars: 3 },
+        { name: 'Resistencia Intermitente', level: 'MEDIA', stars: 2 }
+    ];
+
+    // g por kg de peso corporal
+    const NUTRITION = {
+        baja:    { label: 'Baja',    cho: 3, pro: 2.0, fat: 1.0 },
+        media:   { label: 'Media',   cho: 5, pro: 1.8, fat: 1.0 },
+        alta:    { label: 'Alta',    cho: 7, pro: 1.8, fat: 1.0 },
+        partido: { label: 'Partido', cho: 9, pro: 1.7, fat: 0.8 }
+    };
+
+    const MEALS = {
+        baja:    [['08:00', 'Desayuno', 'Huevos, avena, fruta'], ['13:30', 'Comida', 'Proteína magra + verduras + ración pequeña de arroz'], ['17:00', 'Merienda', 'Yogur griego + frutos secos'], ['21:00', 'Cena', 'Pescado azul + ensalada'], ['22:30', 'Pre-sueño', 'Caseína o queso fresco']],
+        media:   [['08:00', 'Desayuno', 'Tostadas integrales, huevos, zumo'], ['11:30', 'Pre-entreno', 'Plátano + barrita de cereales'], ['14:00', 'Post-entreno', 'Pasta + pollo + verduras'], ['18:00', 'Merienda', 'Bocadillo de pavo'], ['21:00', 'Cena', 'Arroz + pescado + verduras']],
+        alta:    [['07:30', 'Desayuno', 'Avena, leche, fruta, miel'], ['10:30', 'Pre-entreno', 'Tostada con mermelada + agua con electrolitos'], ['13:30', 'Post-entreno', 'Batido de recuperación + arroz con pollo'], ['17:30', 'Merienda', 'Bocadillo + fruta'], ['21:00', 'Cena', 'Patata/boniato + carne magra + verduras']],
+        partido: [['09:00', 'Desayuno', 'Pan, mermelada, zumo, huevos'], ['13:00', 'Pre-partido (-3 h)', 'Pasta o arroz blanco + pollo, bajo en fibra'], ['15:30', 'Snack (-45 min)', 'Plátano o gel'], ['18:00', 'Post-partido', 'Batido 3:1 + fruta'], ['21:00', 'Cena', 'Arroz + salmón + verduras cocidas']]
+    };
+
+    const WELLNESS = [
+        { key: 'sleep', label: 'Sueño (h)', icon: 'fa-moon', min: 4, max: 11, step: 0.5, def: 8 },
+        { key: 'fatigue', label: 'Fatiga (1-10)', icon: 'fa-battery-quarter', min: 1, max: 10, step: 1, def: 4 },
+        { key: 'soreness', label: 'Dolor muscular (1-10)', icon: 'fa-bone', min: 1, max: 10, step: 1, def: 3 },
+        { key: 'rpe', label: 'RPE sesión (1-10)', icon: 'fa-heart-pulse', min: 0, max: 10, step: 1, def: 6 }
+    ];
+
+    const TYPE_STYLE = {
+        baja: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
+        media: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        alta: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+        partido: 'text-teal-400 bg-teal-500/10 border-teal-500/20'
+    };
+
+    const TITLES = { dashboard: 'Dashboard Élite Alejandro Ornia', training: 'Entrenamiento', nutrition: 'Nutrición', progress: 'Progreso' };
+
+    // ---------- ESTADO (localStorage protegido) ----------
+    const STORE_KEY = 'mcd-elite-state-v1';
+    const defaultState = () => ({ done: {}, water: 0, weight: 72, load: 'alta', logs: [] });
+    function loadState() {
+        try { return Object.assign(defaultState(), JSON.parse(localStorage.getItem(STORE_KEY)) || {}); }
+        catch (e) { return defaultState(); }
+    }
+    function saveState() {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* almacenamiento no disponible */ }
+    }
+    let state = loadState();
+    let selectedDay = todayId();
+
+    function todayId() {
+        // getDay(): 0 = domingo
+        const idx = (new Date().getDay() + 6) % 7;
+        return DAYS[idx].id;
+    }
+
+    // ---------- NAVEGACIÓN ----------
+    function changeTab(tab) {
+        ['dashboard', 'training', 'nutrition', 'progress'].forEach(t => {
+            document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+        });
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            const active = btn.dataset.tab === tab;
+            btn.classList.toggle('text-teal-400', active);
+            btn.classList.toggle('text-slate-500', !active);
+        });
+        document.getElementById('app-title').textContent = TITLES[tab];
+        document.getElementById('main-scroll').scrollTop = 0;
+        if (tab === 'training') renderTraining();
+        if (tab === 'nutrition') renderNutrition();
+        if (tab === 'progress') renderProgress();
+        if (tab === 'dashboard') renderDashboard();
+    }
+
+    function openToday() {
+        selectedDay = todayId();
+        changeTab('training');
+    }
+
+    // ---------- INSTALACIÓN (iPhone / Mac) ----------
+    function showInstallInstructions() {
+        document.getElementById('install-modal').classList.remove('hidden');
+        document.getElementById('main-scroll').scrollTop = 0;
+    }
+    function closeInstallInstructions() {
+        document.getElementById('install-modal').classList.add('hidden');
+    }
+
+    // ---------- DASHBOARD ----------
+    function renderDashboard() {
+        const total = DAYS.reduce((n, d) => n + d.blocks.length, 0);
+        const done = Object.values(state.done).filter(Boolean).length;
+        document.getElementById('dash-progress-label').textContent = `${done} / ${total}`;
+        document.getElementById('dash-progress-bar').style.width = (total ? done / total * 100 : 0) + '%';
+
+        const d = DAYS.find(x => x.id === todayId());
+        const todayDone = d.blocks.filter((_, i) => state.done[d.id + '-' + i]).length;
+        document.getElementById('dashboard-progress').textContent = Math.round(todayDone / d.blocks.length * 100) + '%';
+
+        document.getElementById('today-card').innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400"><i class="fas ${d.icon}"></i></div>
+                    <div>
+                        <p class="text-[11px] text-slate-400 font-medium">${d.id} • ${d.md}</p>
+                        <h4 class="text-sm font-semibold text-white">${d.title}</h4>
+                    </div>
+                </div>
+                <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-md border ${TYPE_STYLE[d.type]}">${NUTRITION[d.type].label}</span>
+            </div>
+            <div class="flex gap-4 mt-3 text-xs text-slate-400">
+                <span><i class="far fa-clock mr-1"></i>${d.duration} min</span>
+                <span><i class="fas fa-heart-pulse mr-1"></i>RPE ${d.rpe}</span>
+                <span><i class="fas fa-list-check mr-1"></i>${d.blocks.length} bloques</span>
+            </div>`;
+
+        document.getElementById('priority-matrix').innerHTML = PRIORITIES.map(p => `
+            <div class="bg-slate-900/60 border border-slate-800/60 rounded-xl p-3 flex flex-col justify-between">
+                <div class="flex justify-between items-start gap-2">
+                    <span class="text-xs font-semibold text-slate-300">${p.name}</span>
+                    <span class="text-[10px] text-teal-400 font-bold bg-teal-500/10 px-1.5 py-0.5 rounded border border-teal-500/10">${p.level}</span>
+                </div>
+                <div class="mt-4 flex gap-0.5 text-xs text-amber-400">${'<i class="fas fa-star"></i>'.repeat(p.stars)}${'<i class="far fa-star text-slate-600"></i>'.repeat(4 - p.stars)}</div>
+            </div>`).join('');
+    }
+
+    // ---------- ENTRENAMIENTO ----------
+    function selectDay(id) {
+        selectedDay = id;
+        renderTraining();
+    }
+
+    function toggleBlock(key) {
+        state.done[key] = !state.done[key];
+        saveState();
+        renderTraining();
+    }
+
+    function renderTraining() {
+        document.getElementById('day-selector').innerHTML = DAYS.map(d => {
+            const active = d.id === selectedDay;
+            const cls = active
+                ? 'bg-teal-500 border-teal-500 text-slate-950 font-bold shadow-md shadow-teal-500/10'
+                : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-600';
+            return `<button onclick="selectDay('${d.id}')" class="day-btn shrink-0 w-[52px] py-2.5 rounded-xl text-center border font-medium transition-all ${cls}">
+                <span class="block text-[10px] uppercase opacity-70 tracking-wider">${d.short}</span><span class="text-sm mt-0.5 block">${d.md}</span>
+            </button>`;
+        }).join('');
+
+        const d = DAYS.find(x => x.id === selectedDay);
+        const doneCount = d.blocks.filter((_, i) => state.done[d.id + '-' + i]).length;
+        document.getElementById('day-header').innerHTML = `
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] text-slate-400 font-medium">${d.id} • ${d.md}</p>
+                    <h2 class="text-lg font-bold text-white">${d.title}</h2>
+                </div>
+                <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-md border ${TYPE_STYLE[d.type]}">Carga ${NUTRITION[d.type].label}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                <div class="bg-slate-950/60 rounded-lg py-2 border border-slate-800"><p class="text-sm font-bold text-white">${d.duration}'</p><p class="text-[10px] text-slate-500">Duración</p></div>
+                <div class="bg-slate-950/60 rounded-lg py-2 border border-slate-800"><p class="text-sm font-bold text-white">${d.rpe}/10</p><p class="text-[10px] text-slate-500">RPE objetivo</p></div>
+                <div class="bg-slate-950/60 rounded-lg py-2 border border-slate-800"><p class="text-sm font-bold text-white">${d.duration * d.rpe}</p><p class="text-[10px] text-slate-500">UA</p></div>
+            </div>`;
+
+        document.getElementById('day-blocks-count').textContent = `${doneCount}/${d.blocks.length} completados`;
+        document.getElementById('day-blocks').innerHTML = d.blocks.map((b, i) => {
+            const key = d.id + '-' + i;
+            const done = !!state.done[key];
+            return `<button onclick="toggleBlock('${key}')" class="w-full text-left bg-slate-900/40 border ${done ? 'border-teal-500/40' : 'border-slate-800'} rounded-xl p-3.5 flex items-center gap-3 transition-all hover:bg-slate-900">
+                <div class="w-9 h-9 shrink-0 rounded-lg bg-slate-800 flex items-center justify-center text-teal-400"><i class="fas ${b.icon} text-sm"></i></div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-semibold ${done ? 'text-slate-400 line-through' : 'text-white'}">${b.name}</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">${b.detail}</p>
+                </div>
+                <div class="w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${done ? 'bg-teal-500 border-teal-500 text-slate-950' : 'border-slate-600'}">
+                    ${done ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                </div>
+            </button>`;
+        }).join('');
+
+        document.getElementById('day-note').innerHTML = `<p class="font-semibold text-teal-400 mb-1"><i class="fas fa-clipboard mr-1.5"></i>Nota del cuerpo técnico</p>${d.note}`;
+    }
+
+    // ---------- NUTRICIÓN ----------
+    function setLoad(type) {
+        state.load = type;
+        saveState();
+        renderNutrition();
+    }
+
+    function setWater(n) {
+        state.water = state.water === n ? n - 1 : n;
+        saveState();
+        renderNutrition();
+    }
+
+    function renderNutrition() {
+        document.getElementById('load-selector').innerHTML = Object.entries(NUTRITION).map(([k, v]) => {
+            const active = k === state.load;
+            return `<button onclick="setLoad('${k}')" class="py-2 rounded-lg text-xs font-semibold border transition-all ${active ? 'bg-amber-400 border-amber-400 text-slate-950' : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-600'}">${v.label}</button>`;
+        }).join('');
+
+        const weightInput = document.getElementById('weight');
+        if (document.activeElement !== weightInput) weightInput.value = state.weight;
+        const w = Number(state.weight) || 72;
+        const n = NUTRITION[state.load];
+        const cho = Math.round(n.cho * w), pro = Math.round(n.pro * w), fat = Math.round(n.fat * w);
+        const kcal = cho * 4 + pro * 4 + fat * 9;
+        document.getElementById('kcal').textContent = kcal.toLocaleString('es-ES');
+
+        const macros = [
+            ['Carbohidratos', cho, n.cho, cho * 4, 'bg-amber-400'],
+            ['Proteína', pro, n.pro, pro * 4, 'bg-teal-400'],
+            ['Grasas', fat, n.fat, fat * 9, 'bg-sky-400']
+        ];
+        document.getElementById('macros').innerHTML = macros.map(([name, g, perKg, k, color]) => `
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-300 font-medium">${name} <span class="text-slate-500">(${perKg} g/kg)</span></span>
+                    <span class="text-white font-bold">${g} g</span>
+                </div>
+                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full ${color} rounded-full transition-all duration-500" style="width:${Math.round(k / kcal * 100)}%"></div>
+                </div>
+            </div>`).join('');
+
+        document.getElementById('meals').innerHTML = MEALS[state.load].map(([time, name, desc]) => `
+            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3 flex gap-3">
+                <span class="text-xs font-bold text-amber-400 w-11 shrink-0 pt-0.5">${time}</span>
+                <div><h4 class="text-sm font-semibold text-white">${name}</h4><p class="text-xs text-slate-400 mt-0.5">${desc}</p></div>
+            </div>`).join('');
+
+        document.getElementById('water-count').textContent = state.water;
+        document.getElementById('water-glasses').innerHTML = Array.from({ length: 10 }, (_, i) =>
+            `<button onclick="setWater(${i + 1})" aria-label="Vaso ${i + 1}" class="w-7 h-9 rounded-md border flex items-center justify-center transition-colors ${i < state.water ? 'bg-sky-500/20 border-sky-400 text-sky-400' : 'border-slate-700 text-slate-600'}"><i class="fas fa-glass-water text-xs"></i></button>`
+        ).join('');
+    }
+
+    // ---------- PROGRESO ----------
+    function renderProgress() {
+        document.getElementById('wellness-sliders').innerHTML = WELLNESS.map(f => `
+            <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                    <label for="w-${f.key}" class="text-slate-300 font-medium"><i class="fas ${f.icon} text-teal-400 mr-1.5 w-3"></i>${f.label}</label>
+                    <span id="w-${f.key}-val" class="text-white font-bold">${f.def}</span>
+                </div>
+                <input id="w-${f.key}" type="range" min="${f.min}" max="${f.max}" step="${f.step}" value="${f.def}"
+                    oninput="document.getElementById('w-${f.key}-val').textContent=this.value" class="w-full accent-teal-500">
+            </div>`).join('');
+
+        // Carga por día: registro real si existe, si no la planificada como referencia (atenuada)
+        const loads = DAYS.map(d => {
+            const log = state.logs.find(l => l.day === d.id);
+            return { d, value: log ? log.rpe * d.duration : d.rpe * d.duration, real: !!log };
+        });
+        const max = Math.max(...loads.map(l => l.value), 1);
+        const realTotal = loads.filter(l => l.real).reduce((s, l) => s + l.value, 0);
+        document.getElementById('weekly-load').textContent = `${realTotal} UA registradas`;
+        document.getElementById('load-chart').innerHTML = loads.map(l => `
+            <div class="flex-1 flex flex-col items-center justify-end h-full gap-1">
+                <span class="text-[9px] text-slate-500">${l.value || ''}</span>
+                <div class="w-full rounded-t-md ${l.real ? 'bg-teal-500' : 'bg-slate-700/60'}" style="height:${Math.max(l.value / max * 100, 2)}%"></div>
+                <span class="text-[10px] font-medium ${l.d.id === todayId() ? 'text-teal-400' : 'text-slate-500'}">${l.d.short}</span>
+            </div>`).join('');
+
+        document.getElementById('history').innerHTML = state.logs.length
+            ? state.logs.slice().reverse().map(l => `
+                <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                    <div><h4 class="text-sm font-semibold text-white">${l.day}</h4><p class="text-[11px] text-slate-500">${l.date}</p></div>
+                    <div class="flex gap-3 text-xs text-slate-400">
+                        <span title="Sueño"><i class="fas fa-moon mr-1"></i>${l.sleep}h</span>
+                        <span title="Fatiga"><i class="fas fa-battery-quarter mr-1"></i>${l.fatigue}</span>
+                        <span title="RPE"><i class="fas fa-heart-pulse mr-1"></i>${l.rpe}</span>
+                    </div>
+                </div>`).join('')
+            : '<p class="text-xs text-slate-500 text-center py-4">Aún no hay registros. Guarda el de hoy arriba.</p>';
+    }
+
+    function saveWellness() {
+        const entry = { day: todayId(), date: new Date().toLocaleDateString('es-ES') };
+        WELLNESS.forEach(f => { entry[f.key] = Number(document.getElementById('w-' + f.key).value); });
+        state.logs = state.logs.filter(l => l.day !== entry.day);
+        state.logs.push(entry);
+        saveState();
+        renderProgress();
+        showToast(entry.fatigue >= 8 || entry.sleep < 6
+            ? '⚠️ Registro guardado — considera reducir la carga hoy'
+            : '✅ Registro guardado');
+    }
+
+    // Confirmación en dos toques (los diálogos confirm() no funcionan en todas las vistas de app)
+    let resetArmed = false, resetTimer;
+    function resetData() {
+        const btn = document.getElementById('reset-btn');
+        if (!resetArmed) {
+            resetArmed = true;
+            btn.innerHTML = '<i class="fas fa-triangle-exclamation mr-1"></i>Pulsa otra vez para confirmar';
+            btn.classList.add('text-rose-400');
+            resetTimer = setTimeout(() => { resetArmed = false; renderResetBtn(); }, 3000);
+            return;
+        }
+        clearTimeout(resetTimer);
+        resetArmed = false;
+        const weight = state.weight;
+        state = defaultState();
+        state.weight = weight;
+        saveState();
+        renderProgress();
+        renderResetBtn();
+        showToast('Datos reiniciados');
+    }
+    function renderResetBtn() {
+        const btn = document.getElementById('reset-btn');
+        btn.innerHTML = '<i class="fas fa-rotate-left mr-1"></i>Reiniciar datos de la semana';
+        btn.classList.remove('text-rose-400');
+    }
+
+    // ---------- UTILIDADES ----------
+    let toastTimer;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.remove('opacity-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.add('opacity-0'), 2200);
+    }
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ---------- INICIO ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('weight').addEventListener('input', e => {
+            const v = Number(e.target.value);
+            if (v >= 30 && v <= 150) { state.weight = v; saveState(); renderNutrition(); }
+        });
+        updateClock();
+        setInterval(updateClock, 30000);
+        changeTab('dashboard');
+    });
+    </script>
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+    </script>
+
+</body>
+</html>
